@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sanitize Pro: Clean HTML for SEO | Pierre Cochart</title>
+    <meta name="description" content="Instantly strip dirty inline styles, spans, and classes from your content. Convert Google Docs or Word text into clean, semantic SEO-ready HTML.">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --text: #0f172a;
+            --secondary: #64748b;
+            --border: #e2e8f0;
+            --success: #10b981;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            padding: 2rem 1rem;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        header { text-align: center; margin-bottom: 3rem; }
+        
+        h1 {
+            font-size: 2.75rem;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, var(--primary) 0%, #a855f7 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .subtitle { color: var(--secondary); font-size: 1.1rem; }
+
+        /* Main Workspace */
+        .workspace {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .panel {
+            background: var(--card);
+            border-radius: 1.25rem;
+            border: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+        }
+
+        .panel-header {
+            padding: 1rem 1.5rem;
+            background: #f1f5f9;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .panel-title {
+            font-weight: 700;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            color: var(--secondary);
+            letter-spacing: 0.05em;
+        }
+
+        textarea {
+            width: 100%;
+            height: 500px;
+            padding: 1.5rem;
+            border: none;
+            font-family: 'Monaco', 'Consolas', monospace;
+            font-size: 0.9rem;
+            resize: none;
+            outline: none;
+            line-height: 1.5;
+        }
+
+        .btn-action {
+            padding: 0.5rem 1rem;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .btn-action:hover { background: var(--primary-dark); }
+
+        /* Stats Bar */
+        .stats-bar {
+            grid-column: span 2;
+            display: flex;
+            gap: 2rem;
+            padding: 1rem;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 1rem;
+            justify-content: center;
+            font-size: 0.9rem;
+        }
+
+        .stat-item b { color: var(--primary); }
+
+        /* Options Panel */
+        .options-box {
+            grid-column: span 2;
+            background: var(--card);
+            padding: 1.5rem;
+            border-radius: 1rem;
+            border: 1px solid var(--border);
+            display: flex;
+            gap: 2rem;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-bottom: 1rem;
+        }
+
+        .option-item { display: flex; align-items: center; gap: 0.5rem; font-weight: 600; cursor: pointer; }
+        .option-item input { width: 18px; height: 18px; accent-color: var(--primary); }
+
+        /* Footer */
+        .footer-cta {
+            margin-top: 4rem;
+            text-align: center;
+            border-top: 1px solid var(--border);
+            padding-top: 3rem;
+        }
+
+        #toast {
+            position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
+            background: #1e293b; color: white; padding: 0.75rem 1.5rem;
+            border-radius: 2rem; font-size: 0.9rem; opacity: 0; transition: 0.3s;
+        }
+        #toast.show { opacity: 1; transform: translateY(-10px); }
+
+        @media (max-width: 850px) {
+            .workspace { grid-template-columns: 1fr; }
+            .stats-bar { grid-column: span 1; flex-direction: column; gap: 0.5rem; }
+            .options-box { grid-column: span 1; flex-direction: column; gap: 0.5rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <h1>Sanitize Pro</h1>
+            <p class="subtitle">Convert messy word processor text into clean, semantic SEO-ready HTML.</p>
+        </header>
+
+        <main>
+            <div class="options-box">
+                <label class="option-item"><input type="checkbox" id="opt-spans" checked> Remove Spans</label>
+                <label class="option-item"><input type="checkbox" id="opt-styles" checked> Strip Styles</label>
+                <label class="option-item"><input type="checkbox" id="opt-classes" checked> Strip Classes</label>
+                <label class="option-item"><input type="checkbox" id="opt-ids" checked> Strip IDs</label>
+                <label class="option-item"><input type="checkbox" id="opt-empty"> Remove Empty Tags</label>
+            </div>
+
+            <div class="workspace">
+                <div class="panel">
+                    <div class="panel-header">
+                        <span class="panel-title">Dirty Input</span>
+                        <button class="btn-action" onclick="pasteFromClipboard()">Paste</button>
+                    </div>
+                    <textarea id="input-html" placeholder="Paste your Google Docs or Word content here..."></textarea>
+                </div>
+
+                <div class="panel">
+                    <div class="panel-header">
+                        <span class="panel-title">Cleaned HTML</span>
+                        <button class="btn-action" onclick="copyToClipboard()">Copy Code</button>
+                    </div>
+                    <textarea id="output-html" readonly placeholder="Cleaned HTML will appear here..."></textarea>
+                </div>
+
+                <div class="stats-bar">
+                    <div class="stat-item">Original Size: <b id="stat-old">0 B</b></div>
+                    <div class="stat-item">Cleaned Size: <b id="stat-new">0 B</b></div>
+                    <div class="stat-item">Reduction: <b id="stat-reduction" style="color: var(--success)">0%</b></div>
+                </div>
+            </div>
+        </main>
+
+        <footer class="footer-cta">
+            <a href="https://www.buymeacoffee.com/PierreCochart" target="_blank">
+                <img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="height: 50px; width: 217px;">
+            </a>
+            <p style="margin-top: 1.5rem; font-size: 0.8rem; color: var(--secondary);">Built with ❤️ for SEOs by Pierre Cochart</p>
+        </footer>
+    </div>
+
+    <div id="toast">Copied to clipboard!</div>
+
+    <script>
+        const inputArea = document.getElementById('input-html');
+        const outputArea = document.getElementById('output-html');
+        const toast = document.getElementById('toast');
+
+        inputArea.addEventListener('input', sanitize);
+        document.querySelectorAll('.options-box input').forEach(opt => opt.onchange = sanitize);
+
+        function sanitize() {
+            let html = inputArea.value;
+            if (!html) {
+                outputArea.value = '';
+                updateStats(0, 0);
+                return;
+            }
+
+            // Create a temporary DOM element to process the HTML
+            const temp = document.createElement('div');
+            temp.innerHTML = html;
+
+            const removeSpans = document.getElementById('opt-spans').checked;
+            const removeStyles = document.getElementById('opt-styles').checked;
+            const removeClasses = document.getElementById('opt-classes').checked;
+            const removeIds = document.getElementById('opt-ids').checked;
+            const removeEmpty = document.getElementById('opt-empty').checked;
+
+            const allElements = temp.getElementsByTagName('*');
+
+            for (let i = allElements.length - 1; i >= 0; i--) {
+                const el = allElements[i];
+
+                // 1. Strip Attributes
+                if (removeStyles) el.removeAttribute('style');
+                if (removeClasses) el.removeAttribute('class');
+                if (removeIds) el.removeAttribute('id');
+                
+                // Strip common Word junk attributes
+                el.removeAttribute('lang');
+                el.removeAttribute('valign');
+                el.removeAttribute('align');
+
+                // 2. Remove Spans (keeping content)
+                if (removeSpans && el.tagName === 'SPAN') {
+                    while (el.firstChild) {
+                        el.parentNode.insertBefore(el.firstChild, el);
+                    }
+                    el.parentNode.removeChild(el);
+                    continue;
+                }
+
+                // 3. Remove Empty Tags
+                if (removeEmpty && el.innerHTML.trim() === '' && !['IMG', 'BR', 'HR'].includes(el.tagName)) {
+                    el.parentNode.removeChild(el);
+                }
+            }
+
+            const cleaned = temp.innerHTML
+                .replace(/&nbsp;/g, ' ') // Replace non-breaking spaces
+                .replace(/\s+/g, ' ')    // Collapse whitespace
+                .trim();
+
+            outputArea.value = formatHTML(cleaned);
+            updateStats(html.length, cleaned.length);
+        }
+
+        function formatHTML(html) {
+            // Very basic prettifier: Add newlines after block elements
+            return html
+                .replace(/><(?!\/)/g, '>\n<')
+                .replace(/(<\/p>| <\/h[1-6]>| <\/ul>| <\/ol>| <\/li>)/g, '$1\n');
+        }
+
+        function updateStats(oldSize, newSize) {
+            document.getElementById('stat-old').textContent = formatBytes(oldSize);
+            document.getElementById('stat-new').textContent = formatBytes(newSize);
+            
+            const diff = oldSize - newSize;
+            const percent = oldSize > 0 ? Math.round((diff / oldSize) * 100) : 0;
+            document.getElementById('stat-reduction').textContent = percent + '%';
+        }
+
+        function formatBytes(bytes) {
+            if (bytes < 1024) return bytes + " B";
+            return (bytes / 1024).toFixed(1) + " KB";
+        }
+
+        async function pasteFromClipboard() {
+            try {
+                const text = await navigator.clipboard.readText();
+                inputArea.value = text;
+                sanitize();
+            } catch (err) {
+                alert("Please paste directly into the box using Ctrl+V");
+            }
+        }
+
+        function copyToClipboard() {
+            navigator.clipboard.writeText(outputArea.value).then(() => {
+                toast.classList.add('show');
+                setTimeout(() => toast.classList.remove('show'), 2000);
+            });
+        }
+    </script>
+</body>
+</html>
